@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-
 import { cn } from "../lib/util";
 
 const ModalContext = createContext(null);
@@ -72,8 +71,9 @@ function ModalContent({ children, className }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-center items-center pointer-events-none">
       <div
+        data-state={open ? "open" : "closed"}
         className={cn(
-          "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr",
+          "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr data-[state=open]:animate-fadeIn",
           className
         )}
         onClick={(e) => e.stopPropagation()}
