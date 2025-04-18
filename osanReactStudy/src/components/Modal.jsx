@@ -8,9 +8,11 @@ import React, {
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
+import { cn } from "../lib/util";
+
 const ModalContext = createContext(null);
 
-function Modal({ children, className = "" }) {
+function Modal({ children, className }) {
   const [open, setOpen] = useState(false);
 
   const openModal = useCallback(() => setOpen(true), []);
@@ -23,7 +25,7 @@ function Modal({ children, className = "" }) {
       {open &&
         createPortal(
           <div
-            className={`fixed inset-0 z-50 bg-black/50 ${className}`}
+            className={cn("fixed inset-0 z-50 bg-black/50", className)}
             onClick={closeModal}
           />,
           document.body
@@ -41,20 +43,20 @@ const _useModalContext = () => {
   return context;
 };
 
-function ModalTrigger({ children, className = "" }) {
+function ModalTrigger({ children, className }) {
   const { openModal } = _useModalContext();
 
   return (
     <div
       onClick={openModal}
-      className={`cursor-pointer inline-block ${className}`}
+      className={cn("cursor-pointer inline-block", className)}
     >
       {children}
     </div>
   );
 }
 
-function ModalContent({ children, className = "" }) {
+function ModalContent({ children, className }) {
   const { open, closeModal } = _useModalContext();
 
   useEffect(() => {
@@ -70,10 +72,16 @@ function ModalContent({ children, className = "" }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-center items-center pointer-events-none">
       <div
-        className={`relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr ${className}`}
+        className={cn(
+          "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr",
+          className
+        )}
         onClick={(e) => e.stopPropagation()}
       >
-        <X className="absolute right-1 top-1 w-20pxr text-gray-500 hover:text-gray-700 cursor-pointer" onClick={() => closeModal()} />
+        <X
+          className="absolute right-1 top-1 w-20pxr text-gray-500 hover:text-gray-700 cursor-pointer"
+          onClick={() => closeModal()}
+        />
         {children}
       </div>
     </div>,

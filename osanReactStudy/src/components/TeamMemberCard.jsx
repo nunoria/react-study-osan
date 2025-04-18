@@ -1,5 +1,6 @@
 import { RectangleEllipsis } from "lucide-react";
 import { Modal, ModalTrigger, ModalContent } from "./Modal";
+import { cn } from "../lib/util";
 
 function ModalMember({ children, member }) {
   return (
@@ -7,11 +8,17 @@ function ModalMember({ children, member }) {
       <ModalTrigger>{children}</ModalTrigger>
       <ModalContent>
         <div className="flex flex-col gap-3">
-          <h2 name="title" className="text-center text-lg font-semibold">Member Deatil Info</h2>
+          <h2 name="title" className="text-center text-lg font-semibold">
+            Member Deatil Info
+          </h2>
           <div name="information" className="flex flex-col gap-1">
-              <p className="text-gray-500">이름: {member?.name || "정보없음"}</p>
-              <p className="text-gray-500">부서: {member?.department || "정보없음"}</p>
-              <p className="text-gray-500">입사일: {member?.joinedAt || "정보없음"}</p>
+            <p className="text-gray-500">이름: {member?.name || "정보없음"}</p>
+            <p className="text-gray-500">
+              부서: {member?.department || "정보없음"}
+            </p>
+            <p className="text-gray-500">
+              입사일: {member?.joinedAt || "정보없음"}
+            </p>
           </div>
         </div>
       </ModalContent>
@@ -64,9 +71,10 @@ function TeamMemberCard({ member }) {
 
   return (
     <div
-      className={`w-full p-4 border rounded-lg shadow text-left ${
+      className={cn(
+        "w-full p-4 border rounded-lg shadow text-left",
         bgcolor[member?.department ?? "default"]
-      } `}
+      )}
     >
       <ModalMember member={member}>
         <div
