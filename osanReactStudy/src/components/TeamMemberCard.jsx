@@ -1,4 +1,23 @@
 import { RectangleEllipsis } from "lucide-react";
+import { Modal, ModalTrigger, ModalContent } from "./Modal";
+
+function ModalMember({ children, member }) {
+  return (
+    <Modal className="bg-black/70">
+      <ModalTrigger>{children}</ModalTrigger>
+      <ModalContent>
+        <div className="flex flex-col gap-3">
+          <h2 name="title" className="text-center text-lg font-semibold">Member Deatil Info</h2>
+          <div name="information" className="flex flex-col gap-1">
+              <p className="text-gray-500">이름: {member?.name || "정보없음"}</p>
+              <p className="text-gray-500">부서: {member?.department || "정보없음"}</p>
+              <p className="text-gray-500">입사일: {member?.joinedAt || "정보없음"}</p>
+          </div>
+        </div>
+      </ModalContent>
+    </Modal>
+  );
+}
 
 /* 입사 연차 계산,
  * param: joinedAt (string) - 입사일
@@ -49,15 +68,17 @@ function TeamMemberCard({ member }) {
         bgcolor[member?.department ?? "default"]
       } `}
     >
-      <div
-        className="flex flex-row items-end gap-2pxr cursor-pointer hover:scale-105 origin-left"
-        onClick={() => console.log(member ?? "member 정보 없음")}
-      >
-        <h2 className="text-lg font-semibold ">
-          {member?.name || "이름 없음"}
-        </h2>
-        <RectangleEllipsis className="text-gray-500 h-22pxr" />
-      </div>
+      <ModalMember member={member}>
+        <div
+          className="flex flex-row items-end gap-2pxr cursor-pointer hover:scale-105 origin-left"
+          onClick={() => console.log(member)}
+        >
+          <h2 className="text-lg font-semibold ">
+            {member?.name || "이름 없음"}
+          </h2>
+          <RectangleEllipsis className="text-gray-500 h-22pxr" />
+        </div>
+      </ModalMember>
       <p className="text-sm text-gray-600">
         부서: {member?.department || "정보 없음"}
       </p>
