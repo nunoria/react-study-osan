@@ -4,6 +4,8 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  Children,
+  isValidElement,
 } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -11,21 +13,35 @@ import { cn } from "../lib/util";
 
 const ModalContext = createContext(null);
 
-function Modal({ children, className }) {
-  const [open, setOpen] = useState(false);
+/*
+ * Modal: 컴포넌트 Root - overlay 스타일 및 동작 제어
+ * @props: onOpenChange(function (boolean) => void) - 모달 열림 상태 변경 함수, 외부에서 상태 관리시 사용
+ * @props: open(boolean) - 모달 열림 상태, 외부에서 상태 관리시 사용
+ */
+function Modal({ children, className, onOpenChange, open, ...props }) {
+  const [_open, setOpen] = useState(false);
 
-  const openModal = useCallback(() => setOpen(true), []);
-  const closeModal = useCallback(() => setOpen(false), []);
+  const isOpen = open ?? _open;
 
-  const contextValue = { open, openModal, closeModal };
+  const openModal = useCallback(() => {
+    onOpenChange && onOpenChange(true);
+    setOpen(true);
+  }, [onOpenChange]);
+  const closeModal = useCallback(() => {
+    onOpenChange && onOpenChange(false);
+    setOpen(false);
+  }, [onOpenChange]);
+
+  const contextValue = { open: isOpen, openModal, closeModal };
 
   return (
     <ModalContext.Provider value={contextValue}>
-      {open &&
+      {isOpen &&
         createPortal(
           <div
             className={cn("fixed inset-0 z-50 bg-black/50", className)}
             onClick={closeModal}
+            {...props}
           />,
           document.body
         )}
@@ -34,7 +50,7 @@ function Modal({ children, className }) {
   );
 }
 
-const _useModalContext = () => {
+const useModalContext = () => {
   const context = useContext(ModalContext);
   if (!context) {
     throw new Error("Modal components must be used within <Modal>");
@@ -42,8 +58,11 @@ const _useModalContext = () => {
   return context;
 };
 
+/*
+ * ModalTrigger: Modal 안에 위치해야 함
+ */
 function ModalTrigger({ children, className }) {
-  const { openModal } = _useModalContext();
+  const { openModal } = useModalContext();
 
   return (
     <div
@@ -55,8 +74,30 @@ function ModalTrigger({ children, className }) {
   );
 }
 
-function ModalContent({ children, className }) {
-  const { open, closeModal } = _useModalContext();
+/*
+ * ModalClose(optional): ModalContent 안에 위치해야 함
+ */
+function ModalClose({ children, className }) {
+  const { closeModal } = useModalContext();
+
+  return (
+    <div
+      onClick={() => closeModal()}
+      className={cn(
+        "absolute right-1 top-1 text-gray-500 hover:text-gray-700 cursor-pointer",
+        className
+      )}
+    >
+      {children ?? <X className="w-20pxr" />}
+    </div>
+  );
+}
+
+/*
+ * ModalContent: Modal 안에 위치해야 함
+ */
+function ModalContent({ children, className, labelledById = "modal-title", describedById = "modal-desc", ...props }) {
+  const { open, closeModal } = useModalContext();
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -68,20 +109,27 @@ function ModalContent({ children, className }) {
 
   if (!open) return null;
 
+  // children 안에 ModalClose 있는지 체크
+  const hasCustomClose = Children.toArray(children).some(
+    (child) => isValidElement(child) && child.type === ModalClose
+  );
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex justify-center items-center pointer-events-none">
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledById}
+        aria-describedby={describedById}
         data-state={open ? "open" : "closed"}
         className={cn(
           "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr data-[state=open]:animate-fadeIn",
           className
         )}
         onClick={(e) => e.stopPropagation()}
+        {...props}
       >
-        <X
-          className="absolute right-1 top-1 w-20pxr text-gray-500 hover:text-gray-700 cursor-pointer"
-          onClick={() => closeModal()}
-        />
+        {!hasCustomClose && <ModalClose />}
         {children}
       </div>
     </div>,
@@ -89,4 +137,4 @@ function ModalContent({ children, className }) {
   );
 }
 
-export { Modal, ModalTrigger, ModalContent };
+export { Modal, ModalTrigger, ModalContent, ModalClose };
