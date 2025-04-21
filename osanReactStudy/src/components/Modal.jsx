@@ -18,10 +18,19 @@ const ModalContext = createContext(null);
  * @props: onOpenChange(function (boolean) => void) - 모달 열림 상태 변경 함수, 외부에서 상태 관리시 사용
  * @props: open(boolean) - 모달 열림 상태, 외부에서 상태 관리시 사용
  */
-function Modal({ children, className, onOpenChange, open, ...props }) {
+function Modal({
+  children,
+  className,
+  onOpenChange,
+  open,
+  closeModaldelay = 100,
+  ...props
+}) {
   const [_open, setOpen] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [mount, setMount] = useState(false);
 
-  const isOpen = open ?? _open;
+  const isOpen = open ? open : _open;
 
   const openModal = useCallback(() => {
     onOpenChange && onOpenChange(true);
@@ -32,20 +41,37 @@ function Modal({ children, className, onOpenChange, open, ...props }) {
     setOpen(false);
   }, [onOpenChange]);
 
-  const contextValue = { open: isOpen, openModal, closeModal };
+  useEffect(() => {
+    if (isOpen) {
+      setMount(true);
+      setVisible(true);
+    } else {
+      setVisible(false);
+      setTimeout(() => {
+        setMount(false);
+      }, closeModaldelay);
+    }
+  }, [isOpen]);
+
+  const contextValue = { visible, openModal, closeModal };
 
   return (
     <ModalContext.Provider value={contextValue}>
-      {isOpen &&
+      {mount &&
         createPortal(
           <div
-            className={cn("fixed inset-0 z-50 bg-black/50", className)}
+            data-state={visible ? "visible" : "invisible"}
+            className={cn(
+              "fixed inset-0 z-50 bg-black/50 data-[state=visible]:animate-fadeIn data-[state=invisible]:animate-fadeOut",
+              className
+            )}
             onClick={closeModal}
             {...props}
-          />,
+          >
+            {children}
+          </div>,
           document.body
         )}
-      {children}
     </ModalContext.Provider>
   );
 }
@@ -96,8 +122,14 @@ function ModalClose({ children, className }) {
 /*
  * ModalContent: Modal 안에 위치해야 함
  */
-function ModalContent({ children, className, labelledById = "modal-title", describedById = "modal-desc", ...props }) {
-  const { open, closeModal } = useModalContext();
+function ModalContent({
+  children,
+  className,
+  labelledById = "modal-title",
+  describedById = "modal-desc",
+  ...props
+}) {
+  const { visible, closeModal } = useModalContext();
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -107,23 +139,21 @@ function ModalContent({ children, className, labelledById = "modal-title", descr
     return () => document.removeEventListener("keydown", handleEsc);
   }, [closeModal]);
 
-  if (!open) return null;
-
   // children 안에 ModalClose 있는지 체크
   const hasCustomClose = Children.toArray(children).some(
     (child) => isValidElement(child) && child.type === ModalClose
   );
 
-  return createPortal(
+  return (
     <div className="fixed inset-0 z-50 flex justify-center items-center pointer-events-none">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledById}
         aria-describedby={describedById}
-        data-state={open ? "open" : "closed"}
+        data-state={visible ? "visible" : "invisible"}
         className={cn(
-          "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr data-[state=open]:animate-fadeIn",
+          "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr data-[state=visible]:animate-fadeIn data-[state=visible]:animate-zoomIn data-[state=invisible]:animate-fadeOut data-[state=invisible]:animate-zoomOut",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -132,8 +162,7 @@ function ModalContent({ children, className, labelledById = "modal-title", descr
         {!hasCustomClose && <ModalClose />}
         {children}
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }
 
