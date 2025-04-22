@@ -53,7 +53,7 @@ function Modal({
     }
   }, [isOpen]);
 
-  const contextValue = { visible, openModal, closeModal };
+  const contextValue = { visible, mount, openModal, closeModal };
 
   return (
     <ModalContext.Provider value={contextValue}>
@@ -67,11 +67,10 @@ function Modal({
             )}
             onClick={closeModal}
             {...props}
-          >
-            {children}
-          </div>,
+          ></div>,
           document.body
         )}
+      {children}
     </ModalContext.Provider>
   );
 }
@@ -129,7 +128,7 @@ function ModalContent({
   describedById = "modal-desc",
   ...props
 }) {
-  const { visible, closeModal } = useModalContext();
+  const { visible, mount, closeModal } = useModalContext();
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -144,26 +143,28 @@ function ModalContent({
     (child) => isValidElement(child) && child.type === ModalClose
   );
 
-  return (
-    <div className="fixed inset-0 z-50 flex justify-center items-center pointer-events-none">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={labelledById}
-        aria-describedby={describedById}
-        data-state={visible ? "visible" : "invisible"}
-        className={cn(
-          "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr data-[state=visible]:animate-fadeIn data-[state=visible]:animate-zoomIn data-[state=invisible]:animate-fadeOut data-[state=invisible]:animate-zoomOut",
-          className
-        )}
-        onClick={(e) => e.stopPropagation()}
-        {...props}
-      >
-        {!hasCustomClose && <ModalClose />}
-        {children}
-      </div>
-    </div>
-  );
+  if (mount)
+    return createPortal(
+      <div className="fixed inset-0 z-50 flex justify-center items-center pointer-events-none">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={labelledById}
+          aria-describedby={describedById}
+          data-state={visible ? "visible" : "invisible"}
+          className={cn(
+            "relative bg-white p-6 rounded-lg shadow-xl pointer-events-auto z-50 min-w-300pxr data-[state=visible]:animate-fadeIn data-[state=visible]:animate-zoomIn data-[state=invisible]:animate-fadeOut data-[state=invisible]:animate-zoomOut",
+            className
+          )}
+          onClick={(e) => e.stopPropagation()}
+          {...props}
+        >
+          {!hasCustomClose && <ModalClose />}
+          {children}
+        </div>
+      </div>,
+      document.body
+    );
 }
 
 export { Modal, ModalTrigger, ModalContent, ModalClose };
