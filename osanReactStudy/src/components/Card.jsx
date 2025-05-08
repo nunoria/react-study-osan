@@ -105,7 +105,7 @@ function TeamMemberCard({ member }) {
               </p>
             </div>
           </div>
-          <ModalClose className="relative right-0 w-full p-6pxr rounded-md text-center bg-blue-600 hover:bg-blue-600/90">
+          <ModalClose className="w-full p-6pxr rounded-md text-center bg-blue-600 hover:bg-blue-600/90">
             <span className="text-white">닫기</span>
           </ModalClose>
         </ModalContent>
