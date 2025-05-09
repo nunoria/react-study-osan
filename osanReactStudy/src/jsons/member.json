@@ -1,0 +1,33 @@
+[
+    {
+      "id": 1,
+      "name": "김도완",
+      "department": "Engineering",
+      "joinedAt": "2021-04-01",
+      "standardClockInTime" : "16:55:00",
+      "standardClockOutTime" : "16:56:00"
+    },
+    {
+      "id": 2,
+      "name": "조범구",
+      "department": "Design",
+      "joinedAt": "2020-03-15",
+      "standardClockInTime" : "09:00:00",
+      "standardClockOutTime" : "18:00:00"
+    },
+    {
+      "id": 3,
+      "name": "이기범",
+      "department": "Marketing",
+      "joinedAt": "2025-04-18",
+      "standardClockInTime" : "09:00:00",
+      "standardClockOutTime" : "18:00:00"
+    },
+    {
+      "id": 4,
+      "name": "류재완",
+      "joinedAt": "2022-02-20",
+      "standardClockInTime" : "09:00:00",
+      "standardClockOutTime" : "18:00:00"
+    }
+]

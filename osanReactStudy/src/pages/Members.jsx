@@ -1,27 +1,5 @@
 import { TeamMemberCard } from "../components/Card";
-
-const memberList = [
-  {
-    name: "nunoria",
-    department: "Engineering",
-    joinedAt: "2021-04-01",
-  },
-  {
-    name: "sangwoo",
-    department: "Design",
-    joinedAt: "2020-03-15",
-  },
-  {
-    name: "jiyoon",
-    department: "Marketing",
-    joinedAt: "2025-04-18",
-  },
-  {
-    name: "sangyoon",
-    // department: "Engineering",
-    joinedAt: "2022-02-20",
-  },
-];
+import memberList from "../jsons/member.json";
 
 export default function Members() {
   return (
