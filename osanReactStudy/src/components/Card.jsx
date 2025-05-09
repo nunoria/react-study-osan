@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, ModalContent, ModalClose } from "./Modal";
 import { cn } from "../lib/util";
+import Badge from "./Badge";
 
 function Card({ children, className, ...props }) {
   return (
@@ -55,11 +56,19 @@ function TeamMemberCard({ member }) {
   }
 
   const bgcolor = (dept) =>
-    ({
-      Engineering: "bg-blue-100",
-      Design: "bg-green-100",
-      Marketing: "bg-yellow-100",
-    }[dept] || "bg-white");
+  ({
+    Engineering: "bg-blue-100",
+    Design: "bg-green-100",
+    Marketing: "bg-yellow-100",
+  }[dept] || "bg-white");
+
+  const statusColorMap = {
+    '미출근': "gray",
+    '지각': "red",
+    '정상': "green",
+    '조퇴': "orange",
+    '지각+조퇴': "yellow",
+  };
 
   return (
     <>
@@ -82,7 +91,13 @@ function TeamMemberCard({ member }) {
         <p className="text-sm text-gray-600">
           연차: {getSeniority(member?.joinedAt)}
         </p>
-      </Card>
+        <p className="text-sm text-gray-600">
+          {"근태 현황: "}
+          <Badge color={statusColorMap[member?.attandanceStatus] || 'gray'}>
+            {member?.attandanceStatus || "정보 없음"}
+          </Badge>
+        </p>
+      </Card >
       <Modal
         className="bg-black/70"
         onOpenChange={setIsModalOpen}

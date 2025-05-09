@@ -5,6 +5,7 @@ import AttendanceRecord from "../class/AttendanceRecord";
 import memberList from "../jsons/member.json";
 import { cn } from "../lib/util";
 import { Search } from "lucide-react";
+import Badge from "../components/Badge";
 
 function CurrentTime() {
     const [currentTime, setCurrentTime] = useState(dayjs());
@@ -75,14 +76,13 @@ export default function Attendance() {
         setSearchInput("");
     }
 
-    const bgcolor = (status) =>
-    ({
-        '미출근': "bg-gray-100",
-        '지각': "bg-red-100",
-        '정상': "bg-green-100",
-        '조퇴': "bg-orange-100",
-        '지각+조퇴': "bg-yellow-100",
-    }[status] || "bg-gray-100");
+    const statusColorMap = {
+        '미출근': "gray",
+        '지각': "red",
+        '정상': "green",
+        '조퇴': "orange",
+        '지각+조퇴': "yellow",
+    };
 
     return (
         <div>
@@ -120,10 +120,9 @@ export default function Attendance() {
                         <div className="flex flex-row gap-2 items-center">
                             <span className="text-gray-400 text-lg font-semibold">{memberList.find(member => member.id === attendanceRecord.memberId).name}</span>
                             {/* 상태배지 */}
-                            <span className={cn(
-                                "text-xs font-semibold px-6pxr py-2pxr rounded-md",
-                                bgcolor(attendanceRecord.status)
-                            )}>{attendanceRecord.status}</span>
+                            <Badge color={statusColorMap[attendanceRecord.status] || 'gray'}>
+                                {attendanceRecord.status}
+                            </Badge>
                         </div>
                         {   /* 출근시간 */
                             attendanceRecord.clockInTime && <span className="text-sm text-gray-500">출근시간: {attendanceRecord.clockInTime}</span>}
