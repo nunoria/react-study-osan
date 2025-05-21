@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TeamMemberCard from './components/TeamMemberCard'; // 팀원 카드 컴포넌트 import
 import AttendanceButton from './components/AttendanceButton'; // 출근/퇴근 버튼 컴포넌트 import
+import AttendanceDashboard from './components/AttendanceDashboard'; // 출결 대시보드 컴포넌트 import
 
 // 팀원 정보 배열
 const teamMembers = [
@@ -54,6 +55,9 @@ function App() {
             {dark ? '☀️ 라이트모드' : '🌙 다크모드'}
           </button>
         </div>
+
+        {/* 출결 대시보드 컴포넌트 추가 */}
+        <AttendanceDashboard />
 
         {/* 출근/퇴근 버튼 컴포넌트 추가 */}
         <div className="max-w-sm mx-auto mb-8">
