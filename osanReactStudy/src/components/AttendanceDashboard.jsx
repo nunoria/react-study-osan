@@ -93,7 +93,7 @@ const AttendanceDashboard = () => {
       <h2 className="text-2xl font-bold mb-4 dark:text-white">출결 대시보드</h2>
 
       {/* 날씨 정보 */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-4 min-h-12">
         {weather ? (
           <>
             <img src={`https://openweathermap.org/img/wn/${weather.icon}.png`} alt="날씨" />
