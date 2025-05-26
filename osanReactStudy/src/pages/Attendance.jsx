@@ -6,6 +6,7 @@ import memberList from "../jsons/member.json";
 import { cn } from "../lib/util";
 import { Search } from "lucide-react";
 import Badge from "../components/Badge";
+import { WeatherCard } from "../components/Card";
 
 function CurrentTime() {
     const [currentTime, setCurrentTime] = useState(dayjs());
@@ -89,9 +90,12 @@ export default function Attendance() {
             <section id="header" className="container-fluid mx-auto p-4">
                 <h1 className="text-2xl font-bold">출퇴근 입력</h1>
             </section>
-            <section id="current_time" className="container-fluid mx-auto p-4 pt-0" >
+            <section id="current_time" className="container-fluid mx-auto px-4" >
                 {/* 연월일 및 현재 시간 표기 */}
                 <CurrentTime />
+            </section>
+            <section id="weather" className="container-fluid mx-auto p-4">
+                <WeatherCard />
             </section>
             <section id="search" className="container-fluid mx-auto p-4">
                 <div className="flex flex-col gap-2">

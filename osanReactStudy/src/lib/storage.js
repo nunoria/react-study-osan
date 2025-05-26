@@ -34,3 +34,11 @@ export function updateAttendanceList(record) {
     const raw = JSON.stringify(list);
     localStorage.setItem(STORAGE_KEY, raw);
 }
+
+/* 출퇴근 기록을 localStorage 에 저장
+* @param {AttendanceRecord[]} list - 출퇴근 기록 배열
+*/
+export function setAttendanceList(list) {
+    const raw = JSON.stringify(list);
+    localStorage.setItem(STORAGE_KEY, raw);
+}

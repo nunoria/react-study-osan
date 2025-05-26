@@ -4,7 +4,9 @@ import dayjs from 'dayjs';
 import Layout from './components/Layout';
 import Members from './pages/Members';
 import Attendance from './pages/Attendance';
-import { getAttendanceList, updateAttendanceList } from "./lib/storage";
+import { getAttendanceList, updateAttendanceList, setAttendanceList } from "./lib/storage";
+import Dashboard from './pages/Dashboard';
+import attandanceList from './jsons/attendance.json';
 
 const DEFIND_AUTO_CLOCKOUT_TIME = "23:59:00";
 // 자동 퇴근 처리
@@ -25,6 +27,10 @@ function handleAutoClockOut() {
 function App() {
 
   useEffect(() => {
+
+    // 초기 출퇴근 기록을 로드
+    setAttendanceList(attandanceList);
+
     const interval = setInterval(() => {
       const autoClockOutTime = dayjs(`${dayjs().format('YYYY-MM-DD')}T${DEFIND_AUTO_CLOCKOUT_TIME}`);
 
@@ -44,6 +50,7 @@ function App() {
           <Route index element={<Attendance />} />
           {/* <Route path="Members" element={<Members />} /> */}
           <Route path="Members" element={<Members />} />
+          <Route path="Dashboard" element={<Dashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>

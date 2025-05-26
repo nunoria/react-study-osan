@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalClose } from "./Modal";
 import { cn } from "../lib/util";
 import Badge from "./Badge";
@@ -129,4 +129,77 @@ function TeamMemberCard({ member }) {
   );
 }
 
-export { Card, TeamMemberCard };
+const APIKEY = "3e87b3cbf44a5bd009380b0afad104bb";
+const BASEURL = "https://api.openweathermap.org/data/2.5/weather";
+const CITY = "Seoul";
+const weatherIconMap = {
+  "01d": { label: "맑음", emoji: "☀️" },
+  "01n": { label: "맑은 밤", emoji: "🌙" },
+  "02d": { label: "구름 조금", emoji: "🌤" },
+  "02n": { label: "구름 조금 (밤)", emoji: "🌤🌙" },
+  "03d": { label: "구름 많음", emoji: "🌥" },
+  "03n": { label: "구름 많음 (밤)", emoji: "🌥🌙" },
+  "04d": { label: "흐림", emoji: "☁️" },
+  "04n": { label: "흐림 (밤)", emoji: "☁️🌙" },
+  "09d": { label: "소나기", emoji: "🌧" },
+  "09n": { label: "소나기 (밤)", emoji: "🌧🌙" },
+  "10d": { label: "비", emoji: "🌦" },
+  "10n": { label: "비 (밤)", emoji: "🌧🌙" },
+  "11d": { label: "천둥번개", emoji: "🌩" },
+  "11n": { label: "천둥번개 (밤)", emoji: "🌩🌙" },
+  "13d": { label: "눈", emoji: "❄️" },
+  "13n": { label: "눈 (밤)", emoji: "❄️🌙" },
+  "50d": { label: "안개", emoji: "🌫" },
+  "50n": { label: "안개 (밤)", emoji: "🌫🌙" }
+};
+
+function WeatherCard({ className, ...props }) {
+  const [weatherData, setweatherData] = useState(null);
+
+  useEffect(() => {
+    fetch(`${BASEURL}?q=${CITY}&APPID=${APIKEY}&units=metric`)
+      .then((res) => {
+        if (!res.ok) {
+          console.log("날씨 정보 오류:", res);
+          throw new Error("날씨 정보를 가져오는 데 실패했습니다.");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setweatherData({
+          ...data,
+          label: weatherIconMap[data.weather[0].icon]?.label || "정보 없음",
+          emoji: weatherIconMap[data.weather[0].icon]?.emoji || ""
+        });
+      })
+      .catch((error) => {
+        console.error("날씨 정보 오류:", error);
+        setweatherData(null);
+      });
+  }, []);
+
+  return (
+    <div className={cn("border w-full p-2 rounded-lg text-left", className)} {...props}>
+      {
+        weatherData
+          ?
+          <div>
+            <h2 className="text-md font-semibold">날씨 정보</h2>
+            <p className="text-sm text-gray-600">
+              날씨: {weatherData.label} {weatherData.emoji}
+            </p>
+            <p className="text-sm text-gray-600">
+              기온: {weatherData.main.temp} °C
+            </p>
+            <p className="text-sm text-gray-600">
+              습도: {weatherData.main.humidity}%
+            </p>
+          </div>
+          :
+          <p className="text-gray-500">날씨 정보 없음</p>
+      }
+    </div>
+  );
+}
+
+export { Card, TeamMemberCard, WeatherCard };

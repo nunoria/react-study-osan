@@ -39,7 +39,7 @@ export default function Members() {
   return (
     <div>
       <section id="header" className="container-fluid mx-auto p-4">
-        <h1 className="text-2xl font-bold">Team Members</h1>
+        <h1 className="text-2xl font-bold">직원 리스트</h1>
       </section>
       <section id="team_members" className="container-fluid mx-auto p-4">
         <div
