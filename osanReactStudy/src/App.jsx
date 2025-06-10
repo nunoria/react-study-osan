@@ -2,11 +2,14 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import dayjs from 'dayjs';
 import Layout from './components/Layout';
-import Members from './pages/Members';
 import Attendance from './pages/Attendance';
-import { getAttendanceList, updateAttendanceList, setAttendanceList } from "./lib/storage";
+import Members from './pages/Members';
 import Dashboard from './pages/Dashboard';
+import LeaveRequest from './pages/LeaveRequest';
+import { getAttendanceList, updateAttendanceList, setAttendanceList, setLeaveList } from "./lib/storage";
 import attandanceList from './jsons/attendance.json';
+import leaveList from './jsons/leave.json';
+import { Toaster } from 'react-hot-toast';
 
 const DEFIND_AUTO_CLOCKOUT_TIME = "23:59:00";
 // 자동 퇴근 처리
@@ -30,6 +33,7 @@ function App() {
 
     // 초기 출퇴근 기록을 로드
     setAttendanceList(attandanceList);
+    setLeaveList(leaveList);
 
     const interval = setInterval(() => {
       const autoClockOutTime = dayjs(`${dayjs().format('YYYY-MM-DD')}T${DEFIND_AUTO_CLOCKOUT_TIME}`);
@@ -45,10 +49,12 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="bottom-center" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Attendance />} />
           {/* <Route path="Members" element={<Members />} /> */}
+          <Route path="LeaveRequest" element={<LeaveRequest />} />
           <Route path="Members" element={<Members />} />
           <Route path="Dashboard" element={<Dashboard />} />
         </Route>

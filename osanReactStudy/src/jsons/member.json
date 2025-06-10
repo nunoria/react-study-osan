@@ -4,8 +4,9 @@
       "name": "김도완",
       "department": "Engineering",
       "joinedAt": "2021-04-01",
-      "standardClockInTime" : "16:55:00",
-      "standardClockOutTime" : "16:56:00"
+      "standardClockInTime" : "10:00:00",
+      "standardClockOutTime" : "19:00:00",
+      "standardAnnualLeaveDays": 15
     },
     {
       "id": 2,
@@ -13,21 +14,24 @@
       "department": "Design",
       "joinedAt": "2020-03-15",
       "standardClockInTime" : "09:00:00",
-      "standardClockOutTime" : "18:00:00"
+      "standardClockOutTime" : "18:00:00",
+      "standardAnnualLeaveDays": 15
     },
     {
       "id": 3,
       "name": "이기범",
       "department": "Marketing",
       "joinedAt": "2025-04-18",
-      "standardClockInTime" : "09:00:00",
-      "standardClockOutTime" : "18:00:00"
+      "standardClockInTime" : "08:00:00",
+      "standardClockOutTime" : "17:00:00",
+      "standardAnnualLeaveDays": 10
     },
     {
       "id": 4,
-      "name": "류재완",
+      "name": "류제원",
       "joinedAt": "2022-02-20",
       "standardClockInTime" : "09:00:00",
-      "standardClockOutTime" : "18:00:00"
+      "standardClockOutTime" : "18:00:00",
+      "standardAnnualLeaveDays": 15
     }
 ]

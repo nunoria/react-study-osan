@@ -37,9 +37,9 @@ function AttendanceTable({ children, className, list, ...props }) {
     };
 
     return (
-        <table className={cn("w-full", className)} {...props}>
+        <table className={cn("w-full border-collapse", className)} {...props}>
             <thead>
-                <tr>
+                <tr className="bg-gray-100">
                     <th className="text-left p-2">날짜</th>
                     <th className="text-left p-2">이름</th>
                     <th className="text-left p-2">출근 시간</th>

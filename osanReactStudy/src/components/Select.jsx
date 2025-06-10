@@ -159,8 +159,8 @@ function SelectItem({
 
     return (
         <div
-            className={cn("p-1 cursor-pointer hover:bg-green-300",
-                value === selectedValue ? "bg-blue-100" : "bg-none",
+            className={cn("p-1 cursor-pointer hover:bg-gray-300",
+                value === selectedValue ? "bg-amber-500 text-white rounded-sm" : "bg-none",
                 className)}
             onClick={handleClick}
             {...props}
