@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import memberList from "../jsons/member.json";
-import DatePicker from '../components/DatePicker';
-import { Select, SelectTrigger, SelectContent, SelectItem } from '../components/Select';
 import toast from 'react-hot-toast';
-import { getLeaveList, updateLeaveList } from '../lib/storage';
-import Badge from '../components/Badge';
 import dayjs from 'dayjs';
+import { Select, SelectTrigger, SelectContent, SelectItem } from '../components/Select';
+import DatePicker from '../components/DatePicker';
+import Badge from '../components/Badge';
+import { getLeaveList, updateLeaveList, getMember } from '../lib/storage';
 import LeaveRecord from '../class/LeaveRecord';
+import { useSession } from '../hooks/Session';
 
 function LeaveTable({ userLeaveList }) {
     if (!userLeaveList || userLeaveList.length === 0) {
@@ -67,19 +67,21 @@ export default function LeaveRequest() {
     const [reason, setReason] = useState("");
     const [remainDays, setRemainDays] = useState(0);
     const [userLeaveList, setUserLeaveList] = useState([]);
+    const { session } = useSession();
 
     useEffect(() => {
 
-        // 스토리지에서 로그인 유저 정보를 가져와서 memberList에서 찾기
-        // 스토리지에 없는 경우 DEFINE_TEST_USER 사용
-        const DEFINE_TEST_USER = "이기범";
+        if (!session) {
+            setUser(null);
+            setUserLeaveList([]);
+            return;
+        }
 
-        const storedUser = localStorage.getItem('user');
-        const currentUser = storedUser ? JSON.parse(storedUser) : DEFINE_TEST_USER;
-
-        const foundMember = memberList.find(member => member.name === currentUser);
+        // 세션 정보가 있는 경우 user 정보 가져오기
+        const foundMember = getMember({
+            memberId: session.id
+        })
         if (foundMember) {
-            // 로그인된 유저가 memberList에 있는 경우
             const userLeaveList = getLeaveList({
                 memberId: foundMember.id
             })
@@ -90,7 +92,7 @@ export default function LeaveRequest() {
             console.error("로그인된 유저가 없습니다.");
         }
 
-    }, []);
+    }, [session]);
 
     useEffect(() => {
         if (!user) return;
@@ -188,6 +190,13 @@ export default function LeaveRequest() {
         return true;
     }
 
+    const onClear = () => {
+        setStartDay(null);
+        setEndDay(null);
+        setType("ANNUAL");
+        setReason("");
+    }
+
     const onSubmit = () => {
         if (!validateForm()) {
             return;
@@ -223,13 +232,8 @@ export default function LeaveRequest() {
 
         // userLeaveList 업데이트
         setUserLeaveList(prevList => [...prevList, ...leaveRecords]);
-    }
-
-    const onCancel = () => {
-        setStartDay(null);
-        setEndDay(null);
-        setType("ANNUAL");
-        setReason("");
+        // 폼 초기화
+        onClear();
     }
 
     if (!user) {
@@ -287,7 +291,7 @@ export default function LeaveRequest() {
                         신청
                     </button>
                     <button
-                        onClick={onCancel}
+                        onClick={onClear}
                         className="bg-gray-300 hover:bg-gray-400 text-black p-2 rounded-md px-10">
                         취소
                     </button>

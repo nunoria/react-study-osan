@@ -2,14 +2,16 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import dayjs from 'dayjs';
 import Layout from './components/Layout';
-import Attendance from './pages/Attendance';
-import Members from './pages/Members';
 import Dashboard from './pages/Dashboard';
+import Members from './pages/Members';
+import Attendance from './pages/Attendance';
 import LeaveRequest from './pages/LeaveRequest';
-import { getAttendanceList, updateAttendanceList, setAttendanceList, setLeaveList } from "./lib/storage";
+import { getAttendanceList, updateAttendanceList, setAttendanceList, setLeaveList, setMemberList } from "./lib/storage";
 import attandanceList from './jsons/attendance.json';
 import leaveList from './jsons/leave.json';
+import memberList from './jsons/member.json';
 import { Toaster } from 'react-hot-toast';
+import { SessionProvider, useSession } from './hooks/Session';
 
 const DEFIND_AUTO_CLOCKOUT_TIME = "23:59:00";
 // 자동 퇴근 처리
@@ -31,9 +33,10 @@ function App() {
 
   useEffect(() => {
 
-    // 초기 출퇴근 기록을 로드
+    // json 파일을 storage에 저장
     setAttendanceList(attandanceList);
     setLeaveList(leaveList);
+    setMemberList(memberList);
 
     const interval = setInterval(() => {
       const autoClockOutTime = dayjs(`${dayjs().format('YYYY-MM-DD')}T${DEFIND_AUTO_CLOCKOUT_TIME}`);
@@ -49,16 +52,17 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="bottom-center" reverseOrder={false} />
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Attendance />} />
-          {/* <Route path="Members" element={<Members />} /> */}
-          <Route path="LeaveRequest" element={<LeaveRequest />} />
-          <Route path="Members" element={<Members />} />
-          <Route path="Dashboard" element={<Dashboard />} />
-        </Route>
-      </Routes>
+      <SessionProvider expireTime={600}>
+        <Toaster position="bottom-center" reverseOrder={false} />
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="LeaveRequest" element={<LeaveRequest />} />
+            <Route path="Members" element={<Members />} />
+            <Route path="Attendance" element={<Attendance />} />
+          </Route>
+        </Routes>
+      </SessionProvider>
     </BrowserRouter>
   );
 }

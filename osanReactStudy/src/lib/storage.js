@@ -3,16 +3,29 @@ import LeaveRecord from '../class/LeaveRecord.jsx';
 
 const STORAGE_ATTENDANCE_KEY = 'attendanceList';
 const STORAGE_LEAVE_KEY = 'leaveList';
+const STORAGE_MEMBER_KEY = 'memberList';
 
 /* localStorage 에서 출퇴근 기록을 가져옴
 * @returns {AttendanceRecord[]} 출퇴근 기록 배열
 */
-export function getAttendanceList() {
+export function getAttendanceList({ memberId } = {}) {
     const raw = localStorage.getItem(STORAGE_ATTENDANCE_KEY);
     if (!raw) return [];
     try {
         const parsed = JSON.parse(raw);
-        return parsed.map((item) => AttendanceRecord.fromStorage(item));
+        if (typeof memberId === "undefined") { // id가 undefined 이면 전체 기록을 반환
+            return parsed.map((item) => AttendanceRecord.fromStorage(item));
+        }
+        if (memberId === null) { // id가 null 이면 빈 배열 반환
+            return [];
+        }
+        if (typeof memberId !== "number") {
+            console.error('memberId must be a number');
+            return [];
+        }
+        return parsed
+            .map((item) => AttendanceRecord.fromStorage(item))
+            .filter((item) => item.memberId === memberId);
     } catch (e) {
         console.error('Failed to parse attendance list:', e);
         return [];
@@ -97,4 +110,47 @@ export function updateLeaveList(record) {
 export function setLeaveList(list) {
     const raw = JSON.stringify(list);
     localStorage.setItem(STORAGE_LEAVE_KEY, raw);
+}
+
+/* localStorage 에서 멤버 리스트를 가져옴
+* @returns {Object[]} 멤버 리스트 배열
+*/
+export function getMemberList() {
+    const raw = localStorage.getItem(STORAGE_MEMBER_KEY);
+    if (!raw) return [];
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        console.error('Failed to parse member list:', e);
+        return [];
+    }
+}
+
+/* 멤버 리스트를 localStorage 에 저장
+* @param {Object[]} memberList - 멤버 리스트 배열
+*/
+export function setMemberList(memberList) {
+    const raw = JSON.stringify(memberList);
+    localStorage.setItem(STORAGE_MEMBER_KEY, raw);
+}
+
+// memberId 에 해당하는 멤버 정보를 localStorage 에서 가져옴
+export function getMember({ memberId } = {}) {
+    const raw = localStorage.getItem(STORAGE_MEMBER_KEY);
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        if (typeof memberId === "undefined" || memberId === null) {
+            return null;
+        }
+        if (typeof memberId !== "number") {
+            console.error('memberId must be a number');
+            return null;
+        }
+        return parsed.find((item) => item.id === memberId) || null;
+    } catch (e) {
+        console.error('Failed to parse member list:', e);
+        return null;
+    }
+
 }

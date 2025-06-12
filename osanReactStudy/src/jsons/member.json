@@ -6,6 +6,7 @@
       "joinedAt": "2021-04-01",
       "standardClockInTime" : "10:00:00",
       "standardClockOutTime" : "19:00:00",
+      "profileImage": "person03.webp",
       "standardAnnualLeaveDays": 15
     },
     {
@@ -15,12 +16,12 @@
       "joinedAt": "2020-03-15",
       "standardClockInTime" : "09:00:00",
       "standardClockOutTime" : "18:00:00",
+      "profileImage": "person10.jpg",
       "standardAnnualLeaveDays": 15
     },
     {
       "id": 3,
       "name": "이기범",
-      "department": "Marketing",
       "joinedAt": "2025-04-18",
       "standardClockInTime" : "08:00:00",
       "standardClockOutTime" : "17:00:00",
@@ -29,9 +30,11 @@
     {
       "id": 4,
       "name": "류제원",
+      "department": "Marketing",
       "joinedAt": "2022-02-20",
       "standardClockInTime" : "09:00:00",
       "standardClockOutTime" : "18:00:00",
+      "profileImage": "GIF1.gif",
       "standardAnnualLeaveDays": 15
     }
 ]

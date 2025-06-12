@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalClose } from "./Modal";
 import { cn } from "../lib/util";
 import Badge from "./Badge";
+import { UserRound } from 'lucide-react';
 
 function Card({ children, className, ...props }) {
   return (
     <div
       className={cn(
-        "border-gray-300 border rounded-md cursor-pointer transition-transform hover:scale-105 will-change-transform",
+        "border-gray-300 border rounded-md cursor-pointer transition-transform hover:scale-105",
         className
       )}
       {...props}
@@ -106,8 +107,19 @@ function TeamMemberCard({ member }) {
         <ModalContent>
           <div className="flex flex-col gap-3 mb-3">
             <h2 name="title" className="text-center text-lg font-semibold">
-              Member Deatil Info
+              직원 상세 정보
             </h2>
+            <div name="profieImage" className="flex items-center justify-center mb-2">
+              {member?.profileImage ?
+                <img
+                  src={`/img/${member.profileImage}`}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+                :
+                <UserRound className="w-24 h-24 rounded-full p-1 bg-gray-300 text-white" />
+              }
+            </div>
             <div name="information" className="flex flex-col gap-1">
               <p className="text-gray-500">
                 이름: {member?.name || "정보없음"}
@@ -155,7 +167,6 @@ const weatherIconMap = {
 
 function WeatherCard({ className, ...props }) {
   const [weatherData, setweatherData] = useState(null);
-
   useEffect(() => {
     fetch(`${BASEURL}?q=${CITY}&APPID=${APIKEY}&units=metric`)
       .then((res) => {
@@ -179,7 +190,7 @@ function WeatherCard({ className, ...props }) {
   }, []);
 
   return (
-    <div className={cn("border w-full p-2 rounded-lg text-left", className)} {...props}>
+    <div className={cn("w-full text-left", className)} {...props}>
       {
         weatherData
           ?

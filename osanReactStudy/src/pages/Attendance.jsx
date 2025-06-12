@@ -1,81 +1,33 @@
 import { useState, useEffect } from "react";
-import dayjs from 'dayjs';
-import { getAttendanceList, updateAttendanceList } from "../lib/storage";
-import AttendanceRecord from "../class/AttendanceRecord";
-import memberList from "../jsons/member.json";
-import { cn } from "../lib/util";
 import { Search } from "lucide-react";
+import { getAttendanceList } from "../lib/storage";
+import memberJson from "../jsons/member.json";
+import { cn } from "../lib/util";
 import Badge from "../components/Badge";
-import { WeatherCard } from "../components/Card";
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+} from "../components/Select";
+import { useSession } from "../hooks/Session";
 
-function CurrentTime() {
-    const [currentTime, setCurrentTime] = useState(dayjs());
+function AttendanceTable({ children, className, list, ...props }) {
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentTime(dayjs());
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <div className="flex flex-col">
-            <div className="flex flex-row gap-2 items-center">
-                <span className="text-lg font-semibold">
-                    {currentTime.format('YYYY년 M월 D일 A h:mm:ss')}
-                </span>
-            </div>
-        </div>
-    );
-}
-
-export default function Attendance() {
-
-    const [searchInput, setSearchInput] = useState("");
-    const [attendanceRecord, setAttendanceRecord] = useState(null);
-    const [msg, setMsg] = useState("");
-    const [workingTime, setWorkingTime] = useState(null);
-
-    useEffect(() => {
-        if (!attendanceRecord) return;
-
-        if (attendanceRecord.clockOutTime) {
-            setWorkingTime(attendanceRecord.getWorkingDuration());
-            return;
-        }
-        // 출근시간이 있는 경우에만 근무시간 계산
-        const interval = setInterval(() => {
-            setWorkingTime(attendanceRecord.getWorkingDuration());
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [attendanceRecord]);
-
-    const handleSearch = () => {
-
-        // 1. memberlist 에서 ID 찾기 없는경우 결과 표시
-        const foundMember = memberList.find(member => member.name.toLowerCase() === searchInput.toLowerCase());
-        if (!foundMember) {
-            setMsg("해당 이름을 가진 팀원이 없습니다.");
-            setAttendanceRecord(null);
-            return;
-        }
-
-        // 2. attandanceList 에서 memberId 로 오늘날짜 레코드 찾기
-        const attendanceList = getAttendanceList();
-        const foundAttendance = attendanceList.find(attendance => {
-            const isToday = dayjs(attendance.date).isSame(dayjs(), 'day');
-            return attendance.memberId === foundMember.id && isToday;
-        });
-
-        // 3. foundAttendance 가 없으면 새로운 레코드 생성, 있으면 기존 레코드 사용
-        setAttendanceRecord(foundAttendance || AttendanceRecord.newRecord({
-            memberId: foundMember.id,
-            standardClockInTime: foundMember.standardClockInTime || "09:00:00",
-            standardClockOutTime: foundMember.standardClockOutTime || "18:00:00",
-        }));
-        setSearchInput("");
+    if (!list || list.length === 0) {
+        return <p className="text-gray-500">출퇴근 기록이 없습니다.</p>;
     }
+
+    const averageWorkingTimeSec = list.reduce((total, record) => {
+        const duration = record.getWorkingDuration();
+        if (duration) {
+            const [hours, minutes, seconds] = duration.split(':').map(Number);
+            return total + (hours * 3600 + minutes * 60 + seconds);
+        }
+        return total;
+    }, 0) / list.length;
+
+    const averageWorkingTime = new Date(averageWorkingTimeSec * 1000).toISOString().substr(11, 8); // HH:mm:ss 형식으로 변환
 
     const statusColorMap = {
         '미출근': "gray",
@@ -86,85 +38,138 @@ export default function Attendance() {
     };
 
     return (
+        <table className={cn("w-full border-collapse", className)} {...props}>
+            <thead>
+                <tr className="bg-gray-100">
+                    <th className="text-left p-2">날짜</th>
+                    <th className="text-left p-2">이름</th>
+                    <th className="text-left p-2">출근 시간</th>
+                    <th className="text-left p-2">퇴근 시간</th>
+                    <th className="text-left p-2">상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                {list.map((record, index) => (
+                    <tr key={index} className="border-b hover:bg-gray-50">
+                        <td className="p-2">{new Date(record.date).toLocaleDateString()}</td>
+                        <td className="p-2">{
+                            memberJson.find(member => member.id === record.memberId)?.name || "알 수 없음"
+                        }</td>
+                        <td className="p-2">
+                            {record.clockInTime || "미출근"}
+                        </td>
+                        <td className="p-2">
+                            {record.clockOutTime || "미퇴근"}
+                        </td>
+                        <td className="p-2">
+                            <Badge color={statusColorMap[record.status] || 'gray'}>
+                                {record.status}
+                            </Badge>
+                        </td>
+                    </tr>
+                ))}
+                <tr>
+                    <td className="p-2" colSpan="2">
+                        <span className="text-gray-500">총 {list.length}건</span>
+                    </td>
+                    <td className="p-2" colSpan="3">
+                        <span className="text-gray-500">{`평균 근무 시간: ${averageWorkingTime}`}</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    );
+}
+
+export default function Attendance() {
+
+    const [range, setRange] = useState("today");
+    const [input, setInput] = useState("");
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [attendanceList, setAttendanceList] = useState(null);
+    const { isAdmin, session } = useSession();
+
+    useEffect(() => {
+        
+        // 관리자 모드인 경우 전체 데이터를 가져오고, 아닌경우 현재 사용자의 데이터만 가져옵니다.
+        const list = isAdmin ? getAttendanceList() : getAttendanceList({memberId:session.id});
+        const today = new Date();
+
+        // range 값을 기준으로 필터링
+        let filteredList = list.filter(record => {
+            const attendanceDate = new Date(record.date);
+            switch (range) {
+                case "today":
+                    return attendanceDate.toDateString() === today.toDateString();
+                case "week":
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay());
+                    return attendanceDate >= startOfWeek && attendanceDate <= today;
+                case "month":
+                    return attendanceDate.getMonth() === today.getMonth() && attendanceDate.getFullYear() === today.getFullYear();
+                case "all":
+                default:
+                    return true;
+            }
+        });
+
+        if (searchKeyword.length > 0 && isAdmin) {
+            const memberId = memberJson.find(m => m.name.includes(searchKeyword))?.id;
+
+            console.log(`검색어:${searchKeyword}(memberId:${memberId})`);
+            filteredList = filteredList.filter(record => record.memberId === memberId);
+        }
+
+        // 최근 날짜순으로 정렬
+        filteredList.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        setAttendanceList(filteredList);
+
+    }, [range, searchKeyword, isAdmin]);
+
+    return (
         <div>
-            <section id="header" className="container-fluid mx-auto p-4">
-                <h1 className="text-2xl font-bold">출퇴근 입력</h1>
-            </section>
-            <section id="current_time" className="container-fluid mx-auto px-4" >
-                {/* 연월일 및 현재 시간 표기 */}
-                <CurrentTime />
-            </section>
-            <section id="weather" className="container-fluid mx-auto p-4">
-                <WeatherCard />
-            </section>
-            <section id="search" className="container-fluid mx-auto p-4">
-                <div className="flex flex-col gap-2">
-                    <div className="flex flex-row gap-2 items-center">
-                        <input type="text" id="searchInput"
-                            className="border border-gray-300 p-2 rounded-md focus:border-blue-500 focus:outline-none"
-                            placeholder="이름 검색"
-                            value={searchInput}
-                            onChange={e => { setSearchInput(e.target.value); setMsg("") }}
-                            onKeyDown={e => { if (e.key === 'Enter') handleSearch() }}
-                        />
-                        <button id="searchBtn"
-                            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md"
-                            onClick={handleSearch}>
-                            <Search /></button>
-                    </div>
-                    { /* message 보여주기 */
-                        msg.length > 0 && <div className="text-red-500 px-1">{msg}</div>
-                    }
+            <section id="header">
+                <div className="container-fluid mx-auto p-4">
+                    <h1 className="text-2xl font-bold">근태 현황</h1>
                 </div>
             </section>
-            <section id="result" className="container-fluid mx-auto p-4">
-                {/* 2. attendance record 보여주기 */
-                    attendanceRecord &&
-                    <div className="flex flex-col p-1 mb-2 gap-1 items-start rounded-md w-fit">
-                        <div className="flex flex-row gap-2 items-center">
-                            <span className="text-gray-400 text-lg font-semibold">{memberList.find(member => member.id === attendanceRecord.memberId).name}</span>
-                            {/* 상태배지 */}
-                            <Badge color={statusColorMap[attendanceRecord.status] || 'gray'}>
-                                {attendanceRecord.status}
-                            </Badge>
-                        </div>
-                        {   /* 출근시간 */
-                            attendanceRecord.clockInTime && <span className="text-sm text-gray-500">출근시간: {attendanceRecord.clockInTime}</span>}
-                        {   /* 퇴근시간 */
-                            attendanceRecord.clockOutTime && <span className="text-sm text-gray-500">퇴근시간: {attendanceRecord.clockOutTime}</span>}
-                        {   /* 근무시간 보여주기 */
-                            attendanceRecord.clockInTime && <div className="text-sm text-gray-500">근무시간: {workingTime}</div>}
+            <section id="filter">
+                <div className="container-fluid mx-auto p-4 flex flex-row gap-8">
+                    <div className={cn("flex flex-row gap-1",
+                        isAdmin ? "" : "hidden"
+                    )}>
+                        <input id="search"
+                            type="text" placeholder="이름 검색"
+                            className="border rounded-md p-2 w-200pxr focus:border-blue-500 focus:outline-none"
+                            value={input}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    setSearchKeyword(input);
+                                }
+                            }}
+                            onChange={(e) => setInput(e.target.value)} />
+                        <button id="searchBtn" onClick={() => { setSearchKeyword(input); }}
+                            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md">
+                            <Search />
+                        </button>
                     </div>
-                }
-                {
-                    /* 3. 출근 버튼, 퇴근 버튼 */
-                    attendanceRecord && !attendanceRecord.clockInTime &&
-                    <button className="bg-green-600/90 hover:bg-green-600 text-white p-6pxr px-4 rounded-md"
-                        onClick={() => {
-                            const newRecord = attendanceRecord.clockIn();
-                            updateAttendanceList(newRecord);
-                            setAttendanceRecord(newRecord);
-                            // setMsg("출근 완료");
-                        }}
-                    >
-                        출근
-                    </button>
-                }
-                {
-                    attendanceRecord && attendanceRecord.clockInTime &&
-                    <button className="bg-sky-600/90 hover:bg-sky-600 text-white p-6pxr px-4 text-white p-2 rounded-md"
-                        onClick={() => {
-                            const newRecord = attendanceRecord.clockOut();
-                            updateAttendanceList(newRecord);
-                            setAttendanceRecord(newRecord);
-                            // setMsg("퇴근 완료");
-                        }}
-                    >
-                        퇴근
-                    </button>
-                }
 
+                    <Select value={range} onValueChange={setRange}
+                        className="min-w-100pxr">
+                        <SelectTrigger />
+                        <SelectContent>
+                            <SelectItem value="today">오늘</SelectItem>
+                            <SelectItem value="week">이번 주</SelectItem>
+                            <SelectItem value="month">이번 달</SelectItem>
+                            <SelectItem value="all">전체</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </section>
+            <section id="list" className="container-fluid mx-auto p-4">
+                <AttendanceTable list={attendanceList} />
             </section>
         </div>
-    )
+    );
 }

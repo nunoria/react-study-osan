@@ -1,19 +1,21 @@
-import { useEffect, useState } from "react";
-import { TeamMemberCard } from "../components/Card";
-import memberJson from "../jsons/member.json";
-import { getAttendanceList } from "../lib/storage";
 import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { getAttendanceList, getMemberList } from "../lib/storage";
+import { TeamMemberCard } from "../components/Card";
+import { useSession } from "../hooks/Session";
 
 export default function Members() {
 
-  const [memberList, setMemberList] = useState(memberJson);
+  const [memberList, setMemberList] = useState([]);
+  const { isAdmin } = useSession();
 
   // 근태 현황 읽어 오기
   useEffect(() => {
+    const list = getMemberList();
     const attendanceList = getAttendanceList();
 
     // memberList 에 근태 현황 속성 추가
-    const updatedMemberList = memberList.map((member) => {
+    const updatedMemberList = list.map((member) => {
       const attendanceRecord = attendanceList.find(
         (record) =>
           record.memberId === member.id &&
@@ -36,6 +38,15 @@ export default function Members() {
     setMemberList(updatedMemberList);
   }, []);
 
+  // 관리자가 아닌경우 접근권한 없음을 보여준다.
+  if (!isAdmin) {
+    return (
+      <div className="container-fluid mx-auto p-4">
+        <h1 className="text-2xl font-bold">접근 권한이 없습니다.</h1>
+      </div>
+    );
+  }
+
   return (
     <div>
       <section id="header" className="container-fluid mx-auto p-4">
@@ -49,7 +60,6 @@ export default function Members() {
           {memberList.map((member, index) => (
             <TeamMemberCard key={index} member={member} />
           ))}
-          <TeamMemberCard />
         </div>
       </section>
     </div>
